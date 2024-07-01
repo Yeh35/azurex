@@ -43,26 +43,23 @@ defmodule Azurex.Blob do
 
   ## Examples
 
-      iex> put_blob("filename.txt", "file contents", "text/plain")
-      :ok
+  iex> put_blob("filename.txt", "file contents", "text/plain")
+  :ok
 
-      iex> {:ok, io_device} = StringIO.open("file contents as a stream")
-      byte_length = 8_000_000
-      bitstream = IO.binstream(io_device, byte_length)
-      put_blob("filename.txt", {:stream, bitstream}, nil)
-      :ok
+  iex> {:ok, io_device} = StringIO.open("file contents as a stream")
+  byte_length = 8_000_000
+  bitstream = IO.binstream(io_device, byte_length)
+  put_blob("filename.txt", {:stream, bitstream}, nil)
+  :ok
 
-      iex> put_blob("filename.txt", "file contents", "text/plain", "container")
-      :ok
+  iex> put_blob("filename.txt", "file contents", "text/plain", "container")
+  :ok
 
-      iex> put_blob("filename.txt", "file contents", "text/plain", nil, timeout: 10)
-      :ok
+  iex> put_blob("filename.txt", "file contents", "text/plain", nil, timeout: 10)
+  :ok
 
-      iex> put_blob("filename.txt", "file contents", "text/plain")
-      {:error, %HTTPoison.Response{}}
-
-      iex> put_blob("filename.txt", "file contents", "text/plain")
-      {:error, %HTTPoison.Response{}}
+  iex> put_blob("filename.txt", "file contents", "text/plain")
+  {:error, %HTTPoison.Response{}}
 
   """
   @spec put_blob(

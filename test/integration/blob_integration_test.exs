@@ -84,6 +84,26 @@ defmodule Azurex.BlobIntegrationTests do
                timeout: 10
              ) == {:ok, @sample_file_contents}
     end
+
+    test "passing container and params and header" do
+      blob_name = make_blob_name()
+
+      assert Blob.put_blob(
+               blob_name,
+               @sample_file_contents,
+               "text/plain",
+               @integration_testing_container,
+               timeout: 10,
+               ignored_param: "ignored_param_value",
+               headers: [{"x-ms-meta-id", "1234"}]
+             ) == :ok
+
+      assert Blob.get_blob(
+               blob_name,
+               @integration_testing_container,
+               timeout: 10
+             ) == {:ok, @sample_file_contents}
+    end
   end
 
   describe "head blob" do
