@@ -106,6 +106,34 @@ defmodule Azurex.BlobIntegrationTests do
     end
   end
 
+  describe "blob tags setting" do
+    test "set tags" do
+      blob_name = make_blob_name()
+      tags = [{"tag1", "value1"}]
+
+      assert Blob.put_blob(
+               blob_name,
+               @sample_file_contents,
+               "text/plain"
+             ) == :ok
+
+      assert Blob.put_blob_tags(blob_name, tags) == :ok
+    end
+
+    test "set tags 2" do
+      blob_name = make_blob_name()
+      tags = [{"tag1", "value1"}, {"tag2", "value2"}, {"tag3", "value2"}]
+
+      assert Blob.put_blob(
+               blob_name,
+               @sample_file_contents,
+               "text/plain"
+             ) == :ok
+
+      assert Blob.put_blob_tags(blob_name, tags) == :ok
+    end
+  end
+
   describe "head blob" do
     test "using default container" do
       blob_name = make_blob_name()

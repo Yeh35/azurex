@@ -10,6 +10,8 @@ defmodule Azurex.Blob do
 
   @typep optional_string :: String.t() | nil
 
+  @type where_expression_opperator :: := | :> | :< | :>= | :<=
+
   def list_containers do
     %HTTPoison.Request{
       url: Config.api_url() <> "/",
@@ -119,6 +121,56 @@ defmodule Azurex.Blob do
     |> HTTPoison.request()
     |> case do
       {:ok, %{status_code: 201}} -> :ok
+      {:ok, err} -> {:error, err}
+      {:error, err} -> {:error, err}
+    end
+  end
+
+  @doc """
+  Set Blob Tags
+
+  ## Examples
+    iex> put_blob_tags("filename.txt", tags: [{"key", "value"}])
+    :ok
+
+    iex> put_blob_tags("filename.txt", "container", tags: [{"key", "value"}])
+    :ok
+
+    iex> put_blob_tags("filename.txt", tags: [{"key", "value"}])
+    {:error, %HTTPoison.Response{}}
+  """
+
+  @spec put_blob_tags(String.t(), optional_string, [{String.t(), String.t()}]) ::
+          :ok
+          | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
+  def put_blob_tags(name, container \\ nil, tags) do
+    content_type = "application/xml; charset=UTF-8"
+    tags_xml = serializer_tags_xml(tags)
+
+    %HTTPoison.Request{
+      method: :put,
+      url: get_url(container, name),
+      params: [
+        comp: "tags"
+      ],
+      body: tags_xml,
+      headers: [
+        {"Content-Type", content_type},
+        {"Content-Length", Integer.to_string(byte_size(tags_xml))}
+      ],
+      # Blob storage only answers when the whole file has been uploaded, so recv_timeout
+      # is not applicable for the put request, so we set it to infinity
+      options: [recv_timeout: :infinity]
+    }
+    |> SharedKey.sign(
+      storage_account_name: Config.storage_account_name(),
+      storage_account_key: Config.storage_account_key(),
+      content_type: content_type
+    )
+    |> HTTPoison.request()
+    |> case do
+      {:ok, %HTTPoison.Response{status_code: 200}} -> :ok
+      {:ok, %HTTPoison.Response{status_code: 204}} -> :ok
       {:ok, err} -> {:error, err}
       {:error, err} -> {:error, err}
     end
@@ -283,5 +335,28 @@ defmodule Azurex.Blob do
 
   defp get_container(container) do
     container || Config.default_container()
+  end
+
+  @spec serializer_tags_xml([{String.t(), String.t()}]) :: String.t()
+  defp serializer_tags_xml(tags) do
+    """
+    <?xml version="1.0" encoding="utf-8"?>
+    <Tags>
+      <TagSet>
+          #{List.foldr(tags, "", fn tag, s_tags -> s_tags <> serializer_tag_xml(tag) end)}
+      </TagSet>
+    </Tags>
+    """
+    |> String.trim()
+    |> String.replace("\n", "")
+  end
+
+  defp serializer_tag_xml({key, value}) do
+    """
+    <Tag>
+        <Key>#{key}</Key>
+        <Value>#{value}</Value>
+    </Tag>
+    """
   end
 end

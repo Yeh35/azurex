@@ -106,7 +106,7 @@ defmodule Azurex.Authorization.SharedKey do
     [
       "/",
       storage_account_name,
-      path
+      path || ""
     ]
   end
 
